@@ -1,0 +1,57 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: secret-controller
+  namespace: secret-syncer
+  labels:
+    app: secret-controller
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: secret-controller
+  template:
+    metadata:
+      labels:
+        app: secret-controller
+    spec:
+      serviceAccountName: secret-controller
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65532
+        fsGroup: 65532
+      containers:
+        - name: controller
+          image: docker.io/zakisk/secret-controller:latest
+          imagePullPolicy: Always
+          ports:
+            - name: metrics
+              containerPort: 9090
+              protocol: TCP
+            - name: profiling
+              containerPort: 8008
+              protocol: TCP
+          env:
+            - name: SYSTEM_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: LOG_LEVEL
+              value: info
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            capabilities:
+              drop:
+                - ALL
+            # Health checks removed since we're not implementing custom endpoints
+            # The controller will exit on fatal errors which is sufficient for Kubernetes
+      terminationGracePeriodSeconds: 30

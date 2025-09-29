@@ -1,0 +1,45 @@
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: secret-controller
+  namespace: secret-syncer
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: secret-controller
+rules:
+  # Permissions for watching, reading, and updating secrets (needed for finalizers)
+  - apiGroups: [""]
+    resources: ["secrets"]
+    verbs: ["get", "list", "watch", "update", "patch"]
+  # Permissions for ensuring namespaces exist (read-only on hub)
+  - apiGroups: [""]
+    resources: ["namespaces"]
+    verbs: ["get", "list"]
+  # Permissions for MultiKueue CRDs
+  - apiGroups: ["kueue.x-k8s.io"]
+    resources: ["multikueueconfigs", "multikueueclusters"]
+    verbs: ["get", "list", "watch"]
+  # Permissions for leader election (if using)
+  - apiGroups: ["coordination.k8s.io"]
+    resources: ["leases"]
+    verbs: ["get", "list", "create", "update", "patch", "watch"]
+  # Permissions for events
+  - apiGroups: [""]
+    resources: ["events"]
+    verbs: ["create", "patch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: secret-controller
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: secret-controller
+subjects:
+  - kind: ServiceAccount
+    name: secret-controller
+    namespace: secret-syncer
