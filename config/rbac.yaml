@@ -1,0 +1,105 @@
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: workload-controller
+  namespace: syncer-service
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: workload-controller
+rules:
+  # Permissions for Kueue Workloads
+  - apiGroups:
+      - kueue.x-k8s.io
+    resources:
+      - workloads
+    verbs:
+      - get
+      - list
+      - watch
+      - update
+      - patch
+  - apiGroups:
+      - kueue.x-k8s.io
+    resources:
+      - workloads/status
+    verbs:
+      - get
+      - update
+      - patch
+  # Permissions for MultiKueueClusters
+  - apiGroups:
+      - kueue.x-k8s.io
+    resources:
+      - multikueueclusters
+    verbs:
+      - get
+      - list
+      - watch
+  # Permissions for Tekton PipelineRuns (to verify ownership)
+  - apiGroups:
+      - tekton.dev
+    resources:
+      - pipelineruns
+    verbs:
+      - get
+      - list
+      - watch
+  # Permissions for ConfigMaps (Knative controllers need this)
+  - apiGroups:
+      - ""
+    resources:
+      - configmaps
+    verbs:
+      - get
+      - list
+      - watch
+  # Permissions for Secrets (if needed for syncing)
+  - apiGroups:
+      - ""
+    resources:
+      - secrets
+    verbs:
+      - get
+      - list
+      - watch
+      - create
+      - update
+      - patch
+      - delete
+  # Permissions for Events (for status reporting)
+  - apiGroups:
+      - ""
+    resources:
+      - events
+    verbs:
+      - create
+      - patch
+  # Leader election permissions
+  - apiGroups:
+      - coordination.k8s.io
+    resources:
+      - leases
+    verbs:
+      - get
+      - list
+      - watch
+      - create
+      - update
+      - patch
+      - delete
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: workload-controller
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: workload-controller
+subjects:
+  - kind: ServiceAccount
+    name: workload-controller
+    namespace: syncer-service
