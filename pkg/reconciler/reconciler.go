@@ -36,7 +36,6 @@ type Reconciler struct {
 	hubKubeClient  kubernetes.Interface
 	workloadLister kueuev1beta1lister.WorkloadLister
 	kueueClient    kueueversioned.Interface
-	tektonClient   tektonversioned2.Interface
 	kueueNamespace string
 }
 
