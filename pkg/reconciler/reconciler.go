@@ -91,6 +91,16 @@ func (r *Reconciler) Reconcile(ctx context.Context, key string) error {
 
 	ownerPipelineRunReference := metav1.GetControllerOf(workload)
 
+	if ownerPipelineRunReference == nil {
+		logger.Infof("workload %s/%s has no owner PipelineRun, skipping reconciliation", namespace, name)
+		return nil
+	}
+
+	if ownerPipelineRunReference.Kind != "PipelineRun" {
+		logger.Infof("workload %s/%s has owner reference of kind %s, skipping reconciliation", namespace, name, ownerPipelineRunReference.Kind)
+		return nil
+	}
+
 	if workload.Status.ClusterName != nil {
 		logger = logger.With("clusterInfo", workload.Status.ClusterName)
 	}
