@@ -169,6 +169,9 @@ func (r *Reconciler) validatePLRAndGetSecretName(ctx context.Context, spokeTekto
 		r.logger.Infof("git auth secret not found for PipelineRun %s/%s on spoke cluster %s", plrNamespace, plrName, clusterName)
 		return "", nil, nil
 	}
+
+	r.logger.Infof("PipelineRun %s/%s has git auth secret %s", plrNamespace, plrName, secretName)
+
 	return secretName, pipelineRun, nil
 }
 
