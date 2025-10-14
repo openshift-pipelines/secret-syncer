@@ -71,10 +71,11 @@ func (r *Reconciler) Reconcile(ctx context.Context, key string) error {
 	logger.Debugf("reconciling workload %s/%s", namespace, name)
 
 	workload, err := r.workloadLister.Workloads(namespace).Get(name)
-	if errors.IsNotFound(err) {
-		logger.Debugf("workload %s/%s no longer exists (deleted)", namespace, name)
-		return nil
-	} else if err != nil {
+	if err != nil {
+		if errors.IsNotFound(err) {
+			logger.Debugf("workload %s/%s no longer exists, may be deleted, skipping reconciliation", namespace, name)
+			return nil
+		}
 		logger.Errorf("error getting workload %s/%s: %v", namespace, name, err)
 		return err
 	}
