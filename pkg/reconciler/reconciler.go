@@ -126,7 +126,11 @@ func (r *Reconciler) Reconcile(ctx context.Context, key string) error {
 		return err
 	}
 
-	secretName, pipelineRun := r.validatePLRAndGetSecretName(ctx, spokeTektonClient, ownerPipelineRunReference.Name, workload.GetNamespace(), *workload.Status.ClusterName)
+	secretName, pipelineRun, err := r.validatePLRAndGetSecretName(ctx, spokeTektonClient, ownerPipelineRunReference.Name, workload.GetNamespace(), *workload.Status.ClusterName)
+	if err != nil {
+		return err
+	}
+	
 	if secretName == "" {
 		return nil
 	}
@@ -142,30 +146,30 @@ func (r *Reconciler) Reconcile(ctx context.Context, key string) error {
 	return nil
 }
 
-func (r *Reconciler) validatePLRAndGetSecretName(ctx context.Context, spokeTektonClient *tektonversioned2.Clientset, plrName, plrNamespace, clusterName string) (string, *v1.PipelineRun) {
+func (r *Reconciler) validatePLRAndGetSecretName(ctx context.Context, spokeTektonClient tektonversioned2.Interface, plrName, plrNamespace, clusterName string) (string, *v1.PipelineRun, error) {
 	pipelineRun, err := spokeTektonClient.TektonV1().PipelineRuns(plrNamespace).Get(ctx, plrName, metav1.GetOptions{})
 	if err != nil {
 		if errors.IsNotFound(err) {
-			r.logger.Infof("PipelineRun %s/%s is not created yet on spoke cluster, skipping reconciliation: %v", plrNamespace, plrName, err)
-			return "", nil
+			r.logger.Infof("PipelineRun %s/%s is not created yet on spoke cluster %s, skipping reconciliation: %v", plrNamespace, plrName, clusterName, err)
+			return "", nil, nil
 		}
 		r.logger.Errorf("error getting PipelineRun %s/%s on spoke cluster %s: %v", plrNamespace, plrName, clusterName, err)
-		return "", nil
+		return "", nil, err
 	}
 
 	r.logger.Infof("retrieved PipelineRun %s/%s successfully from spoke cluster %s", plrNamespace, plrName, clusterName)
 
 	if pipelineRun.IsDone() {
-		r.logger.Infof("PipelineRun %s/%s is done, skipping reconciliation", plrNamespace, plrName)
-		return "", nil
+		r.logger.Infof("PipelineRun %s/%s is done on spoke cluster %s, skipping reconciliation", plrNamespace, plrName, clusterName)
+		return "", nil, nil
 	}
 
 	secretName, ok := pipelineRun.GetAnnotations()[gitAuthSecret]
 	if !ok {
-		r.logger.Infof("git auth secret not found for PipelineRun %s/%s", plrNamespace, plrName)
-		return "", nil
+		r.logger.Infof("git auth secret not found for PipelineRun %s/%s on spoke cluster %s", plrNamespace, plrName, clusterName)
+		return "", nil, nil
 	}
-	return secretName, pipelineRun
+	return secretName, pipelineRun, nil
 }
 
 func (r *Reconciler) createSecretOnSpokeCluster(ctx context.Context, secretName string, clusterName string, spokeKubeClient *kubernetes.Clientset, pipelineRun *v1.PipelineRun) error {
