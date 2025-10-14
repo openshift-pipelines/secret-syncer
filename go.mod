@@ -7,6 +7,7 @@ toolchain go1.24.3
 require (
 	github.com/tektoncd/pipeline v1.4.0
 	go.uber.org/zap v1.27.0
+	gotest.tools/v3 v3.5.2
 	k8s.io/api v0.33.4
 	k8s.io/apimachinery v0.33.4
 	k8s.io/client-go v0.33.4
