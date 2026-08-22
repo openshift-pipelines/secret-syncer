@@ -65,7 +65,7 @@ const (
 	// is mutually exclusive with PodSetSliceRequiredTopologyAnnotation and
 	// PodSetSliceSizeAnnotation.
 	//
-	// This annotation is alpha-level for the TASMultiLayerTopology feature gate.
+	// This annotation is beta-level for the TASMultiLayerTopology feature gate.
 	PodSetSliceRequiredTopologyConstraintsAnnotation = "kueue.x-k8s.io/podset-slice-required-topology-constraints"
 
 	// TopologySchedulingGate is used to delay scheduling of a Pod until the
@@ -138,7 +138,7 @@ type TopologyLevel struct {
 // +genclient:nonNamespaced
 // +kubebuilder:object:root=true
 // +kubebuilder:storageversion
-// +kubebuilder:resource:scope=Cluster
+// +kubebuilder:resource:scope=Cluster,shortName={topo}
 
 // Topology is the Schema for the topology API
 type Topology struct {
@@ -159,8 +159,4 @@ type TopologyList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
 	Items           []Topology `json:"items"`
-}
-
-func init() {
-	SchemeBuilder.Register(&Topology{}, &TopologyList{})
 }

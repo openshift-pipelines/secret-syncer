@@ -84,7 +84,7 @@ type CohortStatus struct {
 // +genclient:nonNamespaced
 // +kubebuilder:storageversion
 // +kubebuilder:object:root=true
-// +kubebuilder:resource:scope=Cluster
+// +kubebuilder:resource:scope=Cluster,shortName={co}
 // +kubebuilder:subresource:status
 
 // Cohort defines the Cohorts API.
@@ -109,10 +109,6 @@ type CohortList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
 	Items           []Cohort `json:"items"`
-}
-
-func init() {
-	SchemeBuilder.Register(&Cohort{}, &CohortList{})
 }
 
 func (src *Cohort) Hub() {}

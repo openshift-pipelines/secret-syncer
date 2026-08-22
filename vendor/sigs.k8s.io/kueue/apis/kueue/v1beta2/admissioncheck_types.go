@@ -106,7 +106,7 @@ const (
 // +kubebuilder:object:root=true
 // +kubebuilder:storageversion
 // +kubebuilder:subresource:status
-// +kubebuilder:resource:scope=Cluster
+// +kubebuilder:resource:scope=Cluster,shortName={ac}
 
 // AdmissionCheck is the Schema for the admissionchecks API
 type AdmissionCheck struct {
@@ -131,8 +131,4 @@ type AdmissionCheckList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
 	Items           []AdmissionCheck `json:"items"`
-}
-
-func init() {
-	SchemeBuilder.Register(&AdmissionCheck{}, &AdmissionCheckList{})
 }

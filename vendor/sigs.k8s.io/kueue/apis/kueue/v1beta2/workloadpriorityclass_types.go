@@ -24,7 +24,7 @@ import (
 // +genclient:nonNamespaced
 // +kubebuilder:object:root=true
 // +kubebuilder:storageversion
-// +kubebuilder:resource:scope=Cluster
+// +kubebuilder:resource:scope=Cluster,shortName={wpc}
 // +kubebuilder:printcolumn:name="Value",JSONPath=".value",type=integer,description="Value of workloadPriorityClass's Priority"
 
 // WorkloadPriorityClass is the Schema for the workloadPriorityClass API
@@ -55,8 +55,4 @@ type WorkloadPriorityClassList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
 	Items           []WorkloadPriorityClass `json:"items"`
-}
-
-func init() {
-	SchemeBuilder.Register(&WorkloadPriorityClass{}, &WorkloadPriorityClassList{})
 }

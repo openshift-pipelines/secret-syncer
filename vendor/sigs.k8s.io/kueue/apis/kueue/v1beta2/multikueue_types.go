@@ -35,6 +35,13 @@ const (
 	// MultiKueueControllerName is the name used by the MultiKueue
 	// admission check controller.
 	MultiKueueControllerName = "kueue.x-k8s.io/multikueue"
+
+	// MultiKueueWorkerWorkloadPodLabel indicates that pod is running on the MK worker
+	// cluster and has MultiKueue origin.
+	MultiKueueWorkerWorkloadPodLabel = "kueue.x-k8s.io/multikueue-worker-workload-pod"
+
+	// MultiKueueWorkerWorkloadPodValue is the value of MultiKueueWorkerWorkloadPodLabel.
+	MultiKueueWorkerWorkloadPodValue = "true"
 )
 
 type LocationType string
@@ -109,7 +116,7 @@ type MultiKueueClusterStatus struct {
 // +kubebuilder:object:root=true
 // +kubebuilder:storageversion
 // +kubebuilder:subresource:status
-// +kubebuilder:resource:scope=Cluster
+// +kubebuilder:resource:scope=Cluster,shortName={mkc}
 
 // +kubebuilder:printcolumn:name="Connected",JSONPath=".status.conditions[?(@.type=='Active')].status",type="string",description="MultiKueueCluster is connected"
 // +kubebuilder:printcolumn:name="Age",JSONPath=".metadata.creationTimestamp",type="date",description="Time this workload was created"
@@ -141,20 +148,44 @@ type MultiKueueClusterList struct {
 // MultiKueueConfigSpec defines the desired state of MultiKueueConfig
 type MultiKueueConfigSpec struct {
 	// clusters is a list of MultiKueueClusters names where the workloads from the ClusterQueue should be distributed.
+	// The order of the list is significant: the Incremental dispatcher nominates clusters
+	// following this order, so the most preferred clusters should be listed first.
 	//
-	// +listType=set
+	// +listType=atomic
 	// +kubebuilder:validation:MinItems=1
 	// +kubebuilder:validation:MaxItems=20
 	// +kubebuilder:validation:items:MaxLength=256
+	// +kubebuilder:validation:XValidation:rule="size(self.filter(i, size(self.filter(j, j == i)) > 1)) == 0",message="must be unique"
 	// +required
 	Clusters []string `json:"clusters,omitempty,omitzero"`
+
+	// quotaManagement specifies the management of ClusterQueue quotas
+	// in the manager cluster.
+	// Supported modes:
+	// - `Manual`: Quota automation is manual.
+	// - `Automated`: Quota automation is enabled (provided that the MultiKueueManagerQuotaAutomation feature gate is enabled).
+	// If unspecified, defaults to `Manual`.
+	// +optional
+	QuotaManagement *MultiKueueConfigQuotaManagementMode `json:"quotaManagement,omitempty"`
 }
+
+// MultiKueueConfigQuotaManagementMode specifies the automation mode.
+// Supported modes:
+// - `Manual`: Quota automation is manual.
+// - `Automated`: Quota automation is enabled (provided that the MultiKueueManagerQuotaAutomation feature gate is enabled).
+// +kubebuilder:validation:Enum=Manual;Automated
+type MultiKueueConfigQuotaManagementMode string
+
+const (
+	QuotaManagementManual    MultiKueueConfigQuotaManagementMode = "Manual"
+	QuotaManagementAutomated MultiKueueConfigQuotaManagementMode = "Automated"
+)
 
 // +genclient
 // +genclient:nonNamespaced
 // +kubebuilder:object:root=true
 // +kubebuilder:storageversion
-// +kubebuilder:resource:scope=Cluster
+// +kubebuilder:resource:scope=Cluster,shortName={mkconf}
 
 // MultiKueueConfig is the Schema for the multikueue API
 type MultiKueueConfig struct {
@@ -175,10 +206,6 @@ type MultiKueueConfigList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
 	Items           []MultiKueueConfig `json:"items"`
-}
-
-func init() {
-	SchemeBuilder.Register(&MultiKueueConfig{}, &MultiKueueConfigList{}, &MultiKueueCluster{}, &MultiKueueClusterList{})
 }
 
 func (*MultiKueueCluster) Hub() {}

@@ -85,6 +85,10 @@ type ProvisioningRequestConfigSpec struct {
 	// podSetMergePolicy specifies the policy for merging PodSets before being passed
 	// to the cluster autoscaler.
 	//
+	// The possible policies are:
+	// - `IdenticalPodTemplates`: Merges only identical PodTemplates.
+	// - `IdenticalWorkloadSchedulingRequirements`: Merges PodTemplates with identical fields that are considered when defining the workload scheduling requirements.
+	//
 	// +optional
 	// +kubebuilder:validation:Enum=IdenticalPodTemplates;IdenticalWorkloadSchedulingRequirements
 	PodSetMergePolicy *ProvisioningRequestConfigPodSetMergePolicy `json:"podSetMergePolicy,omitempty"`
@@ -158,7 +162,7 @@ type Parameter string
 // +genclient:nonNamespaced
 // +kubebuilder:object:root=true
 // +kubebuilder:deprecatedversion:warning="This version is deprecated. Use v1beta2 instead."
-// +kubebuilder:resource:scope=Cluster
+// +kubebuilder:resource:scope=Cluster,shortName={prc}
 
 // ProvisioningRequestConfig is the Schema for the provisioningrequestconfig API
 type ProvisioningRequestConfig struct {
@@ -177,8 +181,4 @@ type ProvisioningRequestConfigList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
 	Items           []ProvisioningRequestConfig `json:"items"`
-}
-
-func init() {
-	SchemeBuilder.Register(&ProvisioningRequestConfig{}, &ProvisioningRequestConfigList{})
 }
