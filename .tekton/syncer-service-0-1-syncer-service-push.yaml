@@ -1,4 +1,4 @@
-# Generated for Konflux Application syncer-service by openshift-pipelines/hack. DO NOT EDIT
+# Generated for Konflux Application multicluster-pipelines-core by openshift-pipelines/hack. DO NOT EDIT
 apiVersion: tekton.dev/v1
 kind: PipelineRun
 metadata:
@@ -16,7 +16,7 @@ metadata:
       ".tekton/syncer-service-0-1-syncer-service-push.yaml".pathChanged())
   creationTimestamp: null
   labels:
-    appstudio.openshift.io/application: syncer-service-0-1
+    appstudio.openshift.io/application: multicluster-pipelines-core-0-1
     appstudio.openshift.io/component: syncer-service-0-1-syncer-service
     pipelines.appstudio.openshift.io/type: build
   name: syncer-service-0-1-syncer-service-on-push
@@ -39,6 +39,8 @@ spec:
   - name: prefetch-input
     value: |
       {"type": "rpm", "path": ".konflux/rpms"}
+  - name: repo-name
+    value: "syncer-service"
   pipelineRef:
     name: docker-build-ta
   taskRunTemplate:
