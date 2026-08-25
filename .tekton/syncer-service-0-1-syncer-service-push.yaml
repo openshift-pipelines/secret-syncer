@@ -39,6 +39,8 @@ spec:
   - name: prefetch-input
     value: |
       {"type": "rpm", "path": ".konflux/rpms"}
+  - name: repo-name
+    value: "syncer-service"
   pipelineRef:
     name: docker-build-ta
   taskRunTemplate:
